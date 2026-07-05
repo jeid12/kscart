@@ -114,8 +114,11 @@ npm run dev                 # starts on http://localhost:3000
 | PUT    | `/api/items/:id`               | JWT    | Edit / toggle an item          |
 | DELETE | `/api/items/:id`               | JWT    | Delete an item                 |
 | POST   | `/api/uploads`                 | JWT    | Upload an item image (multipart) |
+| GET    | `/api/orders`                  | JWT    | Order log (filter `?status=`, `?q=`) |
+| PATCH  | `/api/orders/:id`              | JWT    | Set status (paid/pending/cancelled) |
+| GET    | `/api/analytics`               | JWT    | Sales summary, trend, top items/buyers |
 | GET    | `/api/stores/:slug`            | —      | Public storefront              |
-| POST   | `/api/stores/:slug/checkout`   | —      | Build WhatsApp + MoMo hand-off |
+| POST   | `/api/stores/:slug/checkout`   | —      | Log order + build WhatsApp + MoMo hand-off |
 
 `JWT` auth: send the login/registration token as `Authorization: Bearer <jwt>`.
 Passwords are hashed with bcrypt; only the hash is stored.
@@ -169,7 +172,9 @@ comma-separated list, e.g.
 
 Included: multi-vendor accounts (phone + password login), catalog with
 Cloudinary photo uploads, storefront, cart + totals, WhatsApp message, MoMo USSD
-trigger, link/QR sharing.
+trigger, link/QR sharing, an order log (who bought what) with Paid/Pending
+reconciliation, and a sales analytics dashboard (revenue, 7-day trend, top items
+and buyers).
 
 Out of scope for v1.0: in-app payments/escrow, delivery, multi-vendor
 marketplace, non-MTN providers, SMS/OTP verification (password auth is used

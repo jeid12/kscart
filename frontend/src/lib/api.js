@@ -52,6 +52,12 @@ export const api = {
     request(`/api/items/${id}`, { method: 'PUT', body: payload, auth: true }),
   deleteItem: (id) => request(`/api/items/${id}`, { method: 'DELETE', auth: true }),
 
+  // Orders & analytics
+  getOrders: (query = '') => request(`/api/orders${query}`, { auth: true }),
+  updateOrderStatus: (id, status) =>
+    request(`/api/orders/${id}`, { method: 'PATCH', body: { status }, auth: true }),
+  getAnalytics: () => request('/api/analytics', { auth: true }),
+
   // Image upload (multipart)
   uploadImage: async (file) => {
     const form = new FormData();

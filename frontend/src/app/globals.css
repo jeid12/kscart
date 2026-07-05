@@ -548,3 +548,205 @@ textarea:focus {
   padding: 40px;
   color: var(--muted);
 }
+
+/* Dashboard nav / tabs */
+.dash-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.dash-tabs {
+  display: inline-flex;
+  background: #eef1f4;
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.dash-tab {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.dash-tab.active {
+  background: var(--surface);
+  color: var(--brand-dark);
+  box-shadow: var(--shadow);
+}
+
+/* Stat cards */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Trend bar chart */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 140px;
+  padding-top: 10px;
+}
+
+.chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  max-width: 34px;
+  background: var(--brand);
+  border-radius: 6px 6px 0 0;
+  min-height: 3px;
+  transition: height 0.2s ease;
+}
+
+.chart-bar.empty {
+  background: #e3e8ee;
+}
+
+.chart-label {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Status badges & pills */
+.badge-paid {
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+.badge-pending {
+  background: #fff4e0;
+  color: #a56a00;
+}
+
+.badge-cancelled {
+  background: #fdecec;
+  color: #a12b2b;
+}
+
+.order-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.order-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.order-buyer {
+  font-weight: 700;
+}
+
+.order-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.order-items {
+  font-size: 14px;
+  color: var(--text);
+  margin: 8px 0;
+}
+
+.order-items div {
+  padding: 2px 0;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.seg button {
+  border: none;
+  background: #fff;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.seg button.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.rank-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.rank-row:last-child {
+  border-bottom: none;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.filter-bar input {
+  flex: 1;
+}

@@ -108,6 +108,25 @@ router.post('/:slug/checkout', async (req, res, next) => {
     const { date, time } = kigaliDateTime();
     const buyer = { name: buyerName, id: buyerId, location: buyerLocation, payerName };
 
+    // Persist the order so the vendor can track who bought what and reconcile
+    // payments later (SRS 3.8). Status starts as 'pending' until the vendor
+    // confirms the MoMo payment landed.
+    await db.query(
+      `INSERT INTO orders
+         (vendor_id, order_ref, buyer_tag, buyer_name, buyer_location, payer_name, items, total, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, 'pending')`,
+      [
+        vendor.vendor_id,
+        orderRef,
+        buyerId,
+        buyerName,
+        buyerLocation,
+        payerName,
+        JSON.stringify(lineItems),
+        total,
+      ]
+    );
+
     const whatsappUrl = buildWhatsAppLink({
       phone: vendor.phone_number,
       storeName: vendor.business_name,

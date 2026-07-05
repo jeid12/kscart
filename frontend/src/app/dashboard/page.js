@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppBar from '@/components/AppBar';
+import DashboardNav from '@/components/DashboardNav';
 import ShareBox from '@/components/ShareBox';
 import ImageUpload from '@/components/ImageUpload';
 import { api } from '@/lib/api';
@@ -52,11 +53,6 @@ export default function DashboardPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function logout() {
-    clearSession();
-    router.replace('/login');
-  }
 
   function openAdd() {
     setFormError('');
@@ -134,14 +130,9 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AppBar
-        right={
-          <button className="btn btn-sm btn-outline" onClick={logout}>
-            Sign out
-          </button>
-        }
-      />
+      <AppBar />
       <main className="container page">
+        <DashboardNav />
         <h1>{vendor?.businessName}</h1>
         <p className="subtitle">Manage your items and share your store.</p>
 

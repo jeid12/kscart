@@ -35,3 +35,22 @@ CREATE TABLE IF NOT EXISTS items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_items_vendor ON items (vendor_id);
+
+-- Order log (SRS 3.8): a record is created at each checkout so the vendor can
+-- see who bought what, run analytics, and reconcile MoMo payments (Paid/Pending).
+CREATE TABLE IF NOT EXISTS orders (
+  order_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id      UUID        NOT NULL REFERENCES vendors (vendor_id) ON DELETE CASCADE,
+  order_ref      TEXT        NOT NULL,
+  buyer_tag      TEXT,                              -- e.g. B-4487
+  buyer_name     TEXT,
+  buyer_location TEXT,
+  payer_name     TEXT,
+  items          JSONB       NOT NULL,              -- snapshot at time of order
+  total          INTEGER     NOT NULL,
+  status         TEXT        NOT NULL DEFAULT 'pending',  -- pending | paid | cancelled
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_vendor ON orders (vendor_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (vendor_id, status);

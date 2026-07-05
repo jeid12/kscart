@@ -31,4 +31,19 @@ function item(i) {
   };
 }
 
-module.exports = { publicVendor, managementVendor, item };
+function order(o) {
+  return {
+    orderId: o.order_id,
+    orderRef: o.order_ref,
+    buyerTag: o.buyer_tag,
+    buyerName: o.buyer_name,
+    buyerLocation: o.buyer_location,
+    payerName: o.payer_name,
+    items: o.items,
+    total: o.total,
+    status: o.status,
+    createdAt: o.created_at,
+  };
+}
+
+module.exports = { publicVendor, managementVendor, item, order };
