@@ -11,7 +11,23 @@ const uploadsRouter = require('./routes/uploads');
 
 const app = express();
 
-app.use(cors({ origin: config.corsOrigin }));
+// CORS: allow the configured frontend origin(s). Use "*" in CORS_ORIGIN to allow
+// any origin. Requests with no Origin (curl, health checks) are always allowed.
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/+$/, '');
+    if (
+      config.corsOrigin.includes('*') ||
+      config.corsOrigin.includes(normalized)
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 

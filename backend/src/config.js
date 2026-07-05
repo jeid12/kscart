@@ -5,9 +5,11 @@ const config = {
   databaseUrl:
     process.env.DATABASE_URL ||
     'postgres://postgres:postgres@localhost:5432/kasicart',
+  // Normalize allowed origins: trim whitespace and drop any trailing slash so
+  // "https://x.vercel.app/" and "https://x.vercel.app" both match.
   corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:3000')
     .split(',')
-    .map((o) => o.trim())
+    .map((o) => o.trim().replace(/\/+$/, ''))
     .filter(Boolean),
   // Isolated MoMo USSD template (SRS FR-USSD-1 / risk mitigation: single
   // configurable module for the dial-string syntax).
