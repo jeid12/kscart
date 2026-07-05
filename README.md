@@ -120,6 +120,51 @@ npm run dev                 # starts on http://localhost:3000
 `JWT` auth: send the login/registration token as `Authorization: Bearer <jwt>`.
 Passwords are hashed with bcrypt; only the hash is stored.
 
+## Deployment
+
+The app is deployed as two pieces: the **backend on Render** and the
+**frontend on Vercel**, both pointing at the same Neon database.
+
+### Backend → Render
+
+Option A — Blueprint (uses the included `render.yaml`):
+
+1. Push your code to GitHub (already done).
+2. Render dashboard → **New + → Blueprint** → select this repo. Render detects
+   `render.yaml` and creates the `kasicart-backend` web service.
+3. When prompted, fill in the secret env vars:
+   - `DATABASE_URL` — your Neon connection string.
+   - `JWT_SECRET` — a long random string (`openssl rand -hex 32`).
+   - `CLOUDINARY_URL` — from your Cloudinary dashboard.
+   - `CORS_ORIGIN` — your Vercel URL (add it after the frontend is deployed).
+4. Deploy. Your API is at `https://kasicart-backend.onrender.com`.
+
+Option B — Manual: **New + → Web Service** → connect repo → set
+**Root Directory** `backend`, **Build Command** `npm install`, **Start Command**
+`npm start`, **Health Check Path** `/api/health`, then add the same env vars.
+
+> The schema is already applied to Neon. For a brand-new database, run
+> `npm run db:init` once (locally with that `DATABASE_URL`, or via Render Shell).
+
+### Frontend → Vercel
+
+1. Vercel dashboard → **Add New → Project** → import this repo.
+2. Set **Root Directory** to `frontend` (framework auto-detects as Next.js).
+3. Add an environment variable:
+   - `NEXT_PUBLIC_API_URL` = your Render backend URL (e.g.
+     `https://kasicart-backend.onrender.com`).
+4. Deploy. Your app is at `https://<your-project>.vercel.app`.
+
+### Connect the two (CORS)
+
+After the frontend is live, set `CORS_ORIGIN` on Render to the Vercel URL and
+redeploy the backend. To also allow Vercel preview deployments, use a
+comma-separated list, e.g.
+`https://kscart.vercel.app,https://kscart-git-main-you.vercel.app`.
+
+> Note: Render's free tier sleeps after inactivity, so the first request after
+> idle can take ~30–60s to wake up.
+
 ## MVP scope notes (from the SRS)
 
 Included: multi-vendor accounts (phone + password login), catalog with
@@ -130,4 +175,3 @@ Out of scope for v1.0: in-app payments/escrow, delivery, multi-vendor
 marketplace, non-MTN providers, SMS/OTP verification (password auth is used
 instead), password reset, and full Kinyarwanda/English UI translation (language
 is captured per store but the interface currently ships in English).
-```
