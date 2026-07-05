@@ -1,0 +1,18 @@
+{
+  "name": "kasicart-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KasiCart frontend - mobile-first Quick-Store for WhatsApp vendors",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.2.5",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
