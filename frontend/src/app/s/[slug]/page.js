@@ -165,7 +165,7 @@ export default function StorefrontPage({ params }) {
   return (
     <>
       <AppBar />
-      <main className="container page" style={{ paddingBottom: count > 0 ? 120 : 48 }}>
+      <main className="container-wide page" style={{ paddingBottom: count > 0 ? 120 : 48 }}>
         <div className="store-hero">
           <div className="store-avatar">{initial}</div>
           <h1 style={{ marginBottom: 2 }}>{vendor.businessName}</h1>
@@ -180,7 +180,7 @@ export default function StorefrontPage({ params }) {
           groups.map((group) => (
             <div key={group.id}>
               {group.name && <h2 className="store-category">{group.name}</h2>}
-              {group.items.map(renderItem)}
+              <div className="product-grid">{group.items.map(renderItem)}</div>
             </div>
           ))
         )}

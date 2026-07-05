@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
     return (
       <>
         <AppBar />
-        <main className="container page">
+        <main className="container-wide page">
           <DashboardNav />
           <div className="alert alert-error">{error}</div>
         </main>
@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
   return (
     <>
       <AppBar />
-      <main className="container page">
+      <main className="container-wide page">
         <DashboardNav />
         <h1>Analytics</h1>
         <p className="subtitle">Your sales at a glance.</p>

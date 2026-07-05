@@ -42,6 +42,15 @@ a {
   max-width: 520px;
   margin: 0 auto;
   padding: 0 16px;
+  width: 100%;
+}
+
+/* Wider layout for content-rich pages (storefront, dashboard). */
+.container-wide {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
 }
 
 .appbar {
@@ -53,7 +62,7 @@ a {
 }
 
 .appbar-inner {
-  max-width: 520px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: 14px 16px;
   display: flex;
@@ -417,7 +426,7 @@ textarea:focus {
 }
 
 .orderbar-inner {
-  max-width: 520px;
+  max-width: 1024px;
   margin: 0 auto;
 }
 
@@ -766,4 +775,94 @@ textarea:focus {
 
 .filter-bar input {
   flex: 1;
+  min-width: 0;
+}
+
+/* Storefront product grid (1 column on phones, more on larger screens). */
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+/* Generic responsive card grid (e.g. the orders list on desktop). */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.card-grid .order-card {
+  margin-bottom: 0;
+}
+
+.product-grid .product {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive breakpoints                                              */
+/* ------------------------------------------------------------------ */
+
+/* Very small phones: tighten typography and spacing. */
+@media (max-width: 360px) {
+  h1 { font-size: 22px; }
+  .card { padding: 14px; }
+  .total-amount { font-size: 20px; }
+  .dash-tab { padding: 6px 10px; font-size: 13px; }
+}
+
+/* Tablets and up. */
+@media (min-width: 640px) {
+  .page { padding: 28px 0 64px; }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Order review / details / hand-off sheets become centered dialogs. */
+  .overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .sheet {
+    border-radius: 18px;
+    max-width: 460px;
+  }
+}
+
+/* Desktops: use the extra width. */
+@media (min-width: 900px) {
+  .product-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  /* Keep the storefront order bar button compact instead of full width. */
+  .orderbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .orderbar-inner .total-line {
+    margin-bottom: 0;
+    flex: 1;
+    gap: 16px;
+  }
+
+  .orderbar-inner .btn {
+    width: auto;
+    min-width: 220px;
+  }
 }

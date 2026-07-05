@@ -89,7 +89,7 @@ export default function OrdersPage() {
   return (
     <>
       <AppBar />
-      <main className="container page">
+      <main className="container-wide page">
         <DashboardNav />
         <h1>Orders</h1>
         <p className="subtitle">See who ordered what and mark payments as received.</p>
@@ -124,7 +124,8 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <div className="empty">No orders yet. Share your store link to start receiving orders.</div>
         ) : (
-          orders.map((o) => (
+          <div className="card-grid">
+          {orders.map((o) => (
             <div className="order-card" key={o.orderId}>
               <div className="order-head">
                 <div>
@@ -211,7 +212,8 @@ export default function OrdersPage() {
                 {o.note ? 'Edit note' : 'Add note'}
               </button>
             </div>
-          ))
+          ))}
+          </div>
         )}
       </main>
     </>

@@ -180,7 +180,7 @@ export default function DashboardPage() {
   return (
     <>
       <AppBar />
-      <main className="container page">
+      <main className="container-wide page">
         <DashboardNav />
         <h1>{vendor?.businessName}</h1>
         <p className="subtitle">Manage your items and share your store.</p>
