@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AppBar from '@/components/AppBar';
 import { api } from '@/lib/api';
 import { formatRWF } from '@/lib/format';
+import { getBuyerId, getBuyerProfile, saveBuyerProfile } from '@/lib/buyer';
 
 export default function StorefrontPage({ params }) {
   const { slug } = params;
@@ -14,11 +15,18 @@ export default function StorefrontPage({ params }) {
   const [items, setItems] = useState([]);
 
   const [cart, setCart] = useState({}); // { itemId: quantity }
-  const [showCart, setShowCart] = useState(false);
+  const [step, setStep] = useState('closed'); // 'closed' | 'review' | 'details'
   const [checkout, setCheckout] = useState(null); // result of checkout API
   const [placing, setPlacing] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [buyer, setBuyer] = useState({
+    buyerName: '',
+    buyerLocation: '',
+    payerName: '',
+  });
 
   useEffect(() => {
+    setBuyer(getBuyerProfile());
     (async () => {
       try {
         const data = await api.getStore(slug);
@@ -58,18 +66,31 @@ export default function StorefrontPage({ params }) {
     return { lineItems: li, total: t, count: c };
   }, [cart, items]);
 
-  async function placeOrder() {
+  async function placeOrder(e) {
+    if (e) e.preventDefault();
+    const buyerName = buyer.buyerName.trim();
+    const buyerLocation = buyer.buyerLocation.trim();
+    const payerName = (buyer.payerName || '').trim() || buyerName;
+
+    if (buyerName.length < 2) return setFormError('Please enter your name.');
+    if (buyerLocation.length < 2) return setFormError('Please enter your location.');
+
+    setFormError('');
     setPlacing(true);
-    setError('');
     try {
-      const payload = lineItems.map((li) => ({
-        itemId: li.itemId,
-        quantity: li.quantity,
-      }));
+      const payload = {
+        items: lineItems.map((li) => ({ itemId: li.itemId, quantity: li.quantity })),
+        buyerName,
+        buyerLocation,
+        payerName,
+        buyerId: getBuyerId(),
+      };
       const res = await api.checkout(slug, payload);
+      saveBuyerProfile({ buyerName, buyerLocation, payerName });
       setCheckout(res);
+      setStep('closed');
     } catch (err) {
-      setError(err.message);
+      setFormError(err.message);
     } finally {
       setPlacing(false);
     }
@@ -149,16 +170,16 @@ export default function StorefrontPage({ params }) {
               <span className="muted">{count} item{count > 1 ? 's' : ''}</span>
               <span className="total-amount">{formatRWF(total)}</span>
             </div>
-            <button className="btn btn-primary" onClick={() => setShowCart(true)}>
+            <button className="btn btn-primary" onClick={() => setStep('review')}>
               View order
             </button>
           </div>
         </div>
       )}
 
-      {/* Order review sheet */}
-      {showCart && !checkout && (
-        <div className="overlay" onClick={() => setShowCart(false)}>
+      {/* Step 1: order review sheet */}
+      {step === 'review' && !checkout && (
+        <div className="overlay" onClick={() => setStep('closed')}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <h2>Your order</h2>
             <div className="stack">
@@ -174,12 +195,74 @@ export default function StorefrontPage({ params }) {
               <strong>Total</strong>
               <span className="total-amount">{formatRWF(total)}</span>
             </div>
-            <button className="btn btn-primary" onClick={placeOrder} disabled={placing}>
-              {placing ? 'Preparing…' : 'Continue to checkout'}
+            <button className="btn btn-primary" onClick={() => { setFormError(''); setStep('details'); }}>
+              Continue
             </button>
-            <button className="btn btn-outline" style={{ marginTop: 10 }} onClick={() => setShowCart(false)}>
+            <button className="btn btn-outline" style={{ marginTop: 10 }} onClick={() => setStep('closed')}>
               Keep shopping
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: buyer details (helps the vendor match your MoMo payment) */}
+      {step === 'details' && !checkout && (
+        <div className="overlay" onClick={() => !placing && setStep('review')}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <h2>Your details</h2>
+            <p className="center muted" style={{ marginTop: 0 }}>
+              So the seller knows who's ordering and can match your payment.
+            </p>
+            {formError && <div className="alert alert-error">{formError}</div>}
+            <form onSubmit={placeOrder}>
+              <div className="field">
+                <label htmlFor="buyerName">Your name</label>
+                <input
+                  id="buyerName"
+                  type="text"
+                  placeholder="e.g. Diane Uwase"
+                  value={buyer.buyerName}
+                  onChange={(e) => setBuyer({ ...buyer, buyerName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="buyerLocation">Location</label>
+                <input
+                  id="buyerLocation"
+                  type="text"
+                  placeholder="e.g. Kicukiro, Sonatube"
+                  value={buyer.buyerLocation}
+                  onChange={(e) => setBuyer({ ...buyer, buyerLocation: e.target.value })}
+                  required
+                />
+                <div className="hint">Helps the seller plan pickup or delivery.</div>
+              </div>
+              <div className="field">
+                <label htmlFor="payerName">Name on your MoMo</label>
+                <input
+                  id="payerName"
+                  type="text"
+                  placeholder={buyer.buyerName ? `Same as "${buyer.buyerName}"` : 'Same as your name'}
+                  value={buyer.payerName}
+                  onChange={(e) => setBuyer({ ...buyer, payerName: e.target.value })}
+                />
+                <div className="hint">The name that shows when you pay — may differ from yours (shared/family line).</div>
+              </div>
+
+              <button className="btn btn-primary" type="submit" disabled={placing}>
+                {placing ? 'Preparing…' : `Place order · ${formatRWF(total)}`}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ marginTop: 10 }}
+                onClick={() => setStep('review')}
+                disabled={placing}
+              >
+                Back
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -191,7 +274,14 @@ export default function StorefrontPage({ params }) {
             <h2>Almost done</h2>
             <p className="center muted" style={{ marginTop: 0 }}>
               Order <strong>{checkout.orderRef}</strong> · {formatRWF(checkout.total)}
+              {checkout.date ? ` · ${checkout.date}, ${checkout.time}` : ''}
             </p>
+            {checkout.buyer && (
+              <p className="center muted" style={{ marginTop: -6, fontSize: 12 }}>
+                Buyer ID <strong>{checkout.buyer.id}</strong> · Paying as{' '}
+                <strong>{checkout.buyer.payerName}</strong>
+              </p>
+            )}
 
             <div className="alert alert-info">
               Two quick steps: send your order on WhatsApp, then pay with MoMo.
@@ -223,7 +313,8 @@ export default function StorefrontPage({ params }) {
               style={{ marginTop: 14 }}
               onClick={() => {
                 setCheckout(null);
-                setShowCart(false);
+                setStep('closed');
+                setCart({});
               }}
             >
               Done

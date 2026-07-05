@@ -3,6 +3,8 @@ const db = require('../db/pool');
 const { publicVendor, item } = require('../serializers');
 const {
   generateOrderRef,
+  generateBuyerId,
+  kigaliDateTime,
   buildUssdString,
   buildWhatsAppLink,
 } = require('../utils');
@@ -57,6 +59,21 @@ router.post('/:slug/checkout', async (req, res, next) => {
       return res.status(400).json({ error: 'Your cart is empty.' });
     }
 
+    // Buyer details (help the vendor match the order to an incoming payment).
+    const buyerName = String(req.body?.buyerName || '').trim();
+    const buyerLocation = String(req.body?.buyerLocation || '').trim();
+    let payerName = String(req.body?.payerName || '').trim();
+    const buyerId = String(req.body?.buyerId || '').trim() || generateBuyerId();
+
+    if (buyerName.length < 2) {
+      return res.status(400).json({ error: 'Please enter your name.' });
+    }
+    if (buyerLocation.length < 2) {
+      return res.status(400).json({ error: 'Please enter your location.' });
+    }
+    // The MoMo payer name defaults to the buyer name when left blank.
+    if (!payerName) payerName = buyerName;
+
     // Re-price against the database so totals cannot be tampered with client-side.
     const ids = cart.map((c) => c.itemId);
     const { rows } = await db.query(
@@ -88,6 +105,8 @@ router.post('/:slug/checkout', async (req, res, next) => {
     }
 
     const orderRef = generateOrderRef();
+    const { date, time } = kigaliDateTime();
+    const buyer = { name: buyerName, id: buyerId, location: buyerLocation, payerName };
 
     const whatsappUrl = buildWhatsAppLink({
       phone: vendor.phone_number,
@@ -95,6 +114,9 @@ router.post('/:slug/checkout', async (req, res, next) => {
       items: lineItems,
       total,
       orderRef,
+      buyer,
+      date,
+      time,
     });
 
     const ussdString = buildUssdString(vendor.momo_merchant_code, total);
@@ -105,6 +127,9 @@ router.post('/:slug/checkout', async (req, res, next) => {
       orderRef,
       items: lineItems,
       total,
+      buyer,
+      date,
+      time,
       whatsappUrl,
       momo: {
         ussdString,

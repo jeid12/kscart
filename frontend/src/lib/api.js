@@ -79,8 +79,8 @@ export const api = {
 
   // Public storefront
   getStore: (slug) => request(`/api/stores/${slug}`),
-  checkout: (slug, items) =>
-    request(`/api/stores/${slug}/checkout`, { method: 'POST', body: { items } }),
+  checkout: (slug, payload) =>
+    request(`/api/stores/${slug}/checkout`, { method: 'POST', body: payload }),
 };
 
 export { API_URL };
