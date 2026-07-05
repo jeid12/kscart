@@ -52,10 +52,19 @@ export const api = {
     request(`/api/items/${id}`, { method: 'PUT', body: payload, auth: true }),
   deleteItem: (id) => request(`/api/items/${id}`, { method: 'DELETE', auth: true }),
 
+  // Categories
+  getCategories: () => request('/api/categories', { auth: true }),
+  addCategory: (name) =>
+    request('/api/categories', { method: 'POST', body: { name }, auth: true }),
+  updateCategory: (id, name) =>
+    request(`/api/categories/${id}`, { method: 'PUT', body: { name }, auth: true }),
+  deleteCategory: (id) =>
+    request(`/api/categories/${id}`, { method: 'DELETE', auth: true }),
+
   // Orders & analytics
   getOrders: (query = '') => request(`/api/orders${query}`, { auth: true }),
-  updateOrderStatus: (id, status) =>
-    request(`/api/orders/${id}`, { method: 'PATCH', body: { status }, auth: true }),
+  updateOrder: (id, patch) =>
+    request(`/api/orders/${id}`, { method: 'PATCH', body: patch, auth: true }),
   getAnalytics: () => request('/api/analytics', { auth: true }),
 
   // Image upload (multipart)

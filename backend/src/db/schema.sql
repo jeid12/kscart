@@ -36,6 +36,21 @@ CREATE TABLE IF NOT EXISTS items (
 
 CREATE INDEX IF NOT EXISTS idx_items_vendor ON items (vendor_id);
 
+-- Item categories (vendor-defined groupings shown on the storefront).
+CREATE TABLE IF NOT EXISTS categories (
+  category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id   UUID        NOT NULL REFERENCES vendors (vendor_id) ON DELETE CASCADE,
+  name        TEXT        NOT NULL,
+  position    INTEGER     NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_categories_vendor ON categories (vendor_id);
+
+-- Items can optionally belong to a category (kept when a category is deleted).
+ALTER TABLE items
+  ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES categories (category_id) ON DELETE SET NULL;
+
 -- Order log (SRS 3.8): a record is created at each checkout so the vendor can
 -- see who bought what, run analytics, and reconcile MoMo payments (Paid/Pending).
 CREATE TABLE IF NOT EXISTS orders (
@@ -54,3 +69,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE INDEX IF NOT EXISTS idx_orders_vendor ON orders (vendor_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (vendor_id, status);
+
+-- Fulfillment progress (separate from payment status) + optional vendor note.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfillment TEXT NOT NULL DEFAULT 'new';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS note TEXT;

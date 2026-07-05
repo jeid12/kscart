@@ -28,6 +28,15 @@ function item(i) {
     photoUrl: i.photo_url,
     available: i.available,
     position: i.position,
+    categoryId: i.category_id || null,
+  };
+}
+
+function category(c) {
+  return {
+    categoryId: c.category_id,
+    name: c.name,
+    position: c.position,
   };
 }
 
@@ -42,8 +51,10 @@ function order(o) {
     items: o.items,
     total: o.total,
     status: o.status,
+    fulfillment: o.fulfillment,
+    note: o.note,
     createdAt: o.created_at,
   };
 }
 
-module.exports = { publicVendor, managementVendor, item, order };
+module.exports = { publicVendor, managementVendor, item, category, order };

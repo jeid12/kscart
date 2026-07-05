@@ -17,6 +17,12 @@ const FILTERS = [
 ];
 
 const STATUS_LABEL = { pending: 'Pending', paid: 'Paid', cancelled: 'Cancelled' };
+const FULFILLMENT_STEPS = [
+  { key: 'new', label: 'New' },
+  { key: 'preparing', label: 'Preparing' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'completed', label: 'Completed' },
+];
 
 export default function OrdersPage() {
   const ready = useAuthGuard();
@@ -55,14 +61,14 @@ export default function OrdersPage() {
     if (ready) load();
   }, [ready, load]);
 
-  async function setOrderStatus(order, newStatus) {
+  async function patchOrder(order, patch) {
     setBusyId(order.orderId);
     try {
-      await api.updateOrderStatus(order.orderId, newStatus);
+      const { order: updated } = await api.updateOrder(order.orderId, patch);
       setOrders((list) =>
         list
-          .map((o) => (o.orderId === order.orderId ? { ...o, status: newStatus } : o))
-          // Drop it from view if it no longer matches the active filter.
+          .map((o) => (o.orderId === order.orderId ? updated : o))
+          // Drop it from view if a payment-status change no longer matches the filter.
           .filter((o) => !status || o.status === status)
       );
     } catch (err) {
@@ -70,6 +76,12 @@ export default function OrdersPage() {
     } finally {
       setBusyId(null);
     }
+  }
+
+  async function saveNote(order) {
+    const note = prompt('Add a note for this order', order.note || '');
+    if (note === null) return;
+    await patchOrder(order, { note });
   }
 
   if (!ready) return <><AppBar /><div className="spinner">Loading…</div></>;
@@ -145,29 +157,59 @@ export default function OrdersPage() {
                 💰 Paying as: <strong>{o.payerName}</strong>
               </div>
 
+              {o.note && (
+                <div className="alert alert-info" style={{ fontSize: 13 }}>
+                  📝 {o.note}
+                </div>
+              )}
+
+              <div className="order-label">Payment</div>
               <div className="seg" style={{ display: 'flex' }}>
                 <button
                   className={o.status === 'pending' ? 'active' : ''}
                   disabled={busyId === o.orderId}
-                  onClick={() => setOrderStatus(o, 'pending')}
+                  onClick={() => patchOrder(o, { status: 'pending' })}
                 >
                   Pending
                 </button>
                 <button
                   className={o.status === 'paid' ? 'active' : ''}
                   disabled={busyId === o.orderId}
-                  onClick={() => setOrderStatus(o, 'paid')}
+                  onClick={() => patchOrder(o, { status: 'paid' })}
                 >
                   Paid
                 </button>
                 <button
                   className={o.status === 'cancelled' ? 'active' : ''}
                   disabled={busyId === o.orderId}
-                  onClick={() => setOrderStatus(o, 'cancelled')}
+                  onClick={() => patchOrder(o, { status: 'cancelled' })}
                 >
                   Cancel
                 </button>
               </div>
+
+              <div className="order-label" style={{ marginTop: 10 }}>Fulfillment</div>
+              <div className="seg" style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {FULFILLMENT_STEPS.map((s) => (
+                  <button
+                    key={s.key}
+                    className={(o.fulfillment || 'new') === s.key ? 'active' : ''}
+                    disabled={busyId === o.orderId}
+                    onClick={() => patchOrder(o, { fulfillment: s.key })}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                className="btn btn-sm btn-outline"
+                style={{ marginTop: 10 }}
+                disabled={busyId === o.orderId}
+                onClick={() => saveNote(o)}
+              >
+                {o.note ? 'Edit note' : 'Add note'}
+              </button>
             </div>
           ))
         )}

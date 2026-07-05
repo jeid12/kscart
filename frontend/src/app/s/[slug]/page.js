@@ -13,6 +13,7 @@ export default function StorefrontPage({ params }) {
   const [error, setError] = useState('');
   const [vendor, setVendor] = useState(null);
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const [cart, setCart] = useState({}); // { itemId: quantity }
   const [step, setStep] = useState('closed'); // 'closed' | 'review' | 'details'
@@ -32,6 +33,7 @@ export default function StorefrontPage({ params }) {
         const data = await api.getStore(slug);
         setVendor(data.vendor);
         setItems(data.items);
+        setCategories(data.categories || []);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -119,6 +121,47 @@ export default function StorefrontPage({ params }) {
 
   const initial = (vendor.businessName || '?').charAt(0).toUpperCase();
 
+  const renderItem = (item) => {
+    const qty = cart[item.itemId] || 0;
+    return (
+      <div className="product" key={item.itemId}>
+        {item.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="product-photo" src={item.photoUrl} alt={item.name} loading="lazy" />
+        ) : (
+          <div className="product-photo thumb-placeholder">🛍️</div>
+        )}
+        <div className="product-info">
+          <div className="product-name">{item.name}</div>
+          <div className="product-price">{formatRWF(item.price)}</div>
+        </div>
+        <div className="qty">
+          {qty > 0 && (
+            <>
+              <button aria-label="Decrease" onClick={() => setQty(item.itemId, qty - 1)}>−</button>
+              <span>{qty}</span>
+            </>
+          )}
+          <button aria-label="Increase" onClick={() => setQty(item.itemId, qty + 1)}>+</button>
+        </div>
+      </div>
+    );
+  };
+
+  // Group items by category (in the vendor's category order), with any
+  // uncategorized items shown last. Empty groups are skipped.
+  const groups = [];
+  for (const cat of categories) {
+    const groupItems = items.filter((it) => it.categoryId === cat.categoryId);
+    if (groupItems.length > 0) groups.push({ id: cat.categoryId, name: cat.name, items: groupItems });
+  }
+  const uncategorized = items.filter(
+    (it) => !it.categoryId || !categories.some((c) => c.categoryId === it.categoryId)
+  );
+  if (uncategorized.length > 0) {
+    groups.push({ id: 'uncat', name: groups.length > 0 ? 'Other' : '', items: uncategorized });
+  }
+
   return (
     <>
       <AppBar />
@@ -134,32 +177,12 @@ export default function StorefrontPage({ params }) {
         {items.length === 0 ? (
           <div className="empty">This store has no items yet. Please check back soon.</div>
         ) : (
-          items.map((item) => {
-            const qty = cart[item.itemId] || 0;
-            return (
-              <div className="product" key={item.itemId}>
-                {item.photoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="product-photo" src={item.photoUrl} alt={item.name} loading="lazy" />
-                ) : (
-                  <div className="product-photo thumb-placeholder">🛍️</div>
-                )}
-                <div className="product-info">
-                  <div className="product-name">{item.name}</div>
-                  <div className="product-price">{formatRWF(item.price)}</div>
-                </div>
-                <div className="qty">
-                  {qty > 0 && (
-                    <>
-                      <button aria-label="Decrease" onClick={() => setQty(item.itemId, qty - 1)}>−</button>
-                      <span>{qty}</span>
-                    </>
-                  )}
-                  <button aria-label="Increase" onClick={() => setQty(item.itemId, qty + 1)}>+</button>
-                </div>
-              </div>
-            );
-          })
+          groups.map((group) => (
+            <div key={group.id}>
+              {group.name && <h2 className="store-category">{group.name}</h2>}
+              {group.items.map(renderItem)}
+            </div>
+          ))
         )}
       </main>
 

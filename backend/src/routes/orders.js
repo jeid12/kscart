@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(requireVendor);
 
 const VALID_STATUSES = ['pending', 'paid', 'cancelled'];
+const VALID_FULFILLMENT = ['new', 'preparing', 'ready', 'completed'];
 
 // GET /api/orders?status=&q=&limit= — the vendor's order log (SRS 3.8, FR-LOG-1)
 router.get('/', async (req, res, next) => {
@@ -40,19 +41,44 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// PATCH /api/orders/:id — update status (Paid / Pending / Cancelled) (FR-LOG-2)
+// PATCH /api/orders/:id — update payment status, fulfillment, and/or note.
+// Any subset of fields can be sent (FR-LOG-2).
 router.patch('/:id', async (req, res, next) => {
   try {
-    const { status } = req.body || {};
-    if (!VALID_STATUSES.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status.' });
+    const { status, fulfillment, note } = req.body || {};
+
+    const sets = [];
+    const params = [];
+
+    if (status !== undefined) {
+      if (!VALID_STATUSES.includes(status)) {
+        return res.status(400).json({ error: 'Invalid payment status.' });
+      }
+      params.push(status);
+      sets.push(`status = $${params.length}`);
+    }
+    if (fulfillment !== undefined) {
+      if (!VALID_FULFILLMENT.includes(fulfillment)) {
+        return res.status(400).json({ error: 'Invalid fulfillment status.' });
+      }
+      params.push(fulfillment);
+      sets.push(`fulfillment = $${params.length}`);
+    }
+    if (note !== undefined) {
+      params.push(note ? String(note).trim().slice(0, 500) : null);
+      sets.push(`note = $${params.length}`);
     }
 
+    if (sets.length === 0) {
+      return res.status(400).json({ error: 'Nothing to update.' });
+    }
+
+    params.push(req.params.id, req.vendor.vendor_id);
     const { rows } = await db.query(
-      `UPDATE orders SET status = $1
-       WHERE order_id = $2 AND vendor_id = $3
+      `UPDATE orders SET ${sets.join(', ')}
+       WHERE order_id = $${params.length - 1} AND vendor_id = $${params.length}
        RETURNING *`,
-      [status, req.params.id, req.vendor.vendor_id]
+      params
     );
 
     if (rows.length === 0) {

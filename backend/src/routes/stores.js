@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../db/pool');
-const { publicVendor, item } = require('../serializers');
+const { publicVendor, item, category } = require('../serializers');
 const {
   generateOrderRef,
   generateBuyerId,
@@ -35,9 +35,15 @@ router.get('/:slug', async (req, res, next) => {
       [vendor.vendor_id]
     );
 
+    const cats = await db.query(
+      'SELECT * FROM categories WHERE vendor_id = $1 ORDER BY position ASC, created_at ASC',
+      [vendor.vendor_id]
+    );
+
     return res.json({
       vendor: publicVendor(vendor),
       items: rows.map(item),
+      categories: cats.rows.map(category),
     });
   } catch (err) {
     next(err);
